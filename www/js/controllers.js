@@ -29,19 +29,20 @@ angular.module('starter.controllers', ['ionic'])
   var specularColor = new THREE.Color();
 
   // EVENT HANDLERS
+  function resizeStereoEffect() {
+    effect.eyeSeparation = 10;
+    effect.setSize(window.innerWidth, window.innerHeight);
+  }
 
   function onWindowResize() {
 
     var canvasWidth = window.innerWidth;
     var canvasHeight = window.innerHeight;
 
-    //renderer.setSize( canvasWidth, canvasHeight );
-
     camera.aspect = canvasWidth / canvasHeight;
     camera.updateProjectionMatrix();
 
-    effect.eyeSeparation = 10;
-    effect.setSize( canvasWidth, canvasHeight );
+    resizeStereoEffect();
 
     render();
 
@@ -189,7 +190,6 @@ angular.module('starter.controllers', ['ionic'])
     light.position.set( effectController.lx, effectController.ly, effectController.lz );
     light.color.setHSL( effectController.lhue, effectController.lsaturation, effectController.llightness );
 
-    /*
     // skybox is rendered separately, so that it is always behind the teapot.
     if ( shading === "reflective" ) {
 
@@ -205,7 +205,6 @@ angular.module('starter.controllers', ['ionic'])
       renderer.autoClear = true;
 
     }
-    */
 
     effect.render( scene, camera );
 
@@ -346,8 +345,7 @@ angular.module('starter.controllers', ['ionic'])
 
       // STEREO EFFECT
       effect = new THREE.StereoEffect( renderer );
-      //effect.eyeSeparation = 10;
-      effect.setSize( window.innerWidth, window.innerHeight );
+      resizeStereoEffect();
 
       // GUI
       setupGui();
