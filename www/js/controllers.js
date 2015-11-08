@@ -31,7 +31,7 @@ angular.module('starter.controllers', ['ionic'])
 
   // EVENT HANDLERS
   function resizeStereoEffect() {
-    effect.eyeSeparation = 10;
+    effect.eyeSeparation = 5;
     effect.setSize(window.innerWidth, window.innerHeight);
   }
 
