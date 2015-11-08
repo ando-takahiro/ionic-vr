@@ -5,10 +5,11 @@ angular.module('starter.controllers', ['ionic'])
 
 .directive('teapotView', ['$ionicGesture', '$ionicNavBarDelegate', function (ionicGesture, ionicNavBarDelegate) {
   var stats;
-  var camera, scene, sceneCube, renderer;
+  var camera, scene, renderer;
   var effect;
   var cameraControls;
   var effectController;
+  var FAR = 5000;
   var teapotSize = 400;
   var ambientLight, light;
   var skybox;
@@ -77,7 +78,8 @@ angular.module('starter.controllers', ['ionic'])
       body: true,
       fitLid: false,
       nonblinn: false,
-      newShading: "glossy"
+      newShading: "reflective"
+
     };
 
     var h;
@@ -196,8 +198,6 @@ angular.module('starter.controllers', ['ionic'])
       // clear to skybox
       renderer.autoClear = false;
       skybox.position.copy( camera.position );
-      //renderer.render( sceneCube, camera );
-      effect.render( sceneCube, camera );
 
     } else {
 
@@ -249,6 +249,37 @@ angular.module('starter.controllers', ['ionic'])
 
   }
 
+  // http://stackoverflow.com/questions/9077325/testing-hardware-support-in-javascript-for-device-orientation-events-of-the-ipho
+  function hasOrientationDevice(fn) {
+    var _i = null;
+    var _e = null;
+    var _c = 0;
+
+    var updateDegree = function(e){
+      _e = e;
+    };
+
+    window.addEventListener('deviceorientation', updateDegree, false);
+
+    //  Check event support
+    _i = window.setInterval(function(){
+      if(_e !== null && _e.alpha !== null){
+        // Clear interval
+        clearInterval(_i);
+        // > Run app
+        fn(true);
+      }else{
+        _c++;
+        if(_c === 3){//10){
+          // Clear interval
+          clearInterval(_i);
+          // > Redirect
+          fn(false);
+        }
+      }
+    }, 200);
+  }
+
   return {
     link: function (scope, element, attrs) {
 
@@ -256,7 +287,7 @@ angular.module('starter.controllers', ['ionic'])
       var canvasHeight = window.innerHeight;
 
       // CAMERA
-      camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 80000 );
+      camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, FAR );
       camera.position.set(0, 0, 1300);//( -600, 550, 1300 );
 
       // LIGHTS
@@ -277,10 +308,19 @@ angular.module('starter.controllers', ['ionic'])
       window.addEventListener( 'resize', onWindowResize, false );
 
       // CONTROLS
-      //cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
-      //cameraControls.target.set( 0, 0, 0 );
-      //cameraControls.addEventListener( 'change', render );
-      cameraControls = new THREE.DeviceOrientationControls( camera );
+      //
+      hasOrientationDevice(function (has) {
+        if (has) {
+          cameraControls = new THREE.DeviceOrientationControls( camera );
+        } else {
+          // control by mouse
+          cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+          cameraControls.target.set( 0, 0, 0 );
+          cameraControls.addEventListener( 'change', render );
+        }
+        animate();
+      });
+
 
       // TEXTURE MAP
       var textureMap = THREE.ImageUtils.loadTexture( 'textures/UV_Grid_Sm.jpg' );
@@ -289,9 +329,11 @@ angular.module('starter.controllers', ['ionic'])
 
       // REFLECTION MAP
       var path = "textures/cube/skybox/";
-      var urls = [ path + "px.jpg", path + "nx.jpg",
+      var urls = [
+        path + "px.jpg", path + "nx.jpg",
         path + "py.jpg", path + "ny.jpg",
-      path + "pz.jpg", path + "nz.jpg" ];
+        path + "pz.jpg", path + "nz.jpg"
+      ];
 
       var textureCube = THREE.ImageUtils.loadTextureCube( urls );
 
@@ -325,17 +367,14 @@ angular.module('starter.controllers', ['ionic'])
 
       } );
 
-      skybox = new THREE.Mesh( new THREE.BoxGeometry( 5000, 5000, 5000 ), skyboxMaterial );
-
-      // skybox scene - keep camera centered here
-      sceneCube = new THREE.Scene();
-      sceneCube.add( skybox );
+      skybox = new THREE.Mesh(new THREE.BoxGeometry(FAR, FAR, FAR), skyboxMaterial);
 
       // scene itself
       scene = new THREE.Scene();
 
       scene.add( ambientLight );
       scene.add( light );
+      scene.add(skybox);
 
       // stats
       stats = new Stats();
@@ -351,7 +390,6 @@ angular.module('starter.controllers', ['ionic'])
       setupGui();
 
       render();
-      animate();
 
       // tap to fullscreen
       var fullscreen = false;
