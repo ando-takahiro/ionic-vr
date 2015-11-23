@@ -3,7 +3,7 @@ angular.module('starter.controllers', ['ionic'])
 .controller('TeapotCtrl', function($scope) {
 })
 
-.directive('teapotView', ['$ionicGesture', '$ionicNavBarDelegate', function (ionicGesture, ionicNavBarDelegate) {
+.directive('teapotView', ['$ionicGesture', '$ionicNavBarDelegate', 'Config', function (ionicGesture, ionicNavBarDelegate, Config) {
   var stats;
   var camera, scene, renderer;
   var effect;
@@ -31,7 +31,6 @@ angular.module('starter.controllers', ['ionic'])
 
   // EVENT HANDLERS
   function resizeStereoEffect() {
-    effect.eyeSeparation = 5;
     effect.setSize(window.innerWidth, window.innerHeight);
   }
 
@@ -205,6 +204,8 @@ angular.module('starter.controllers', ['ionic'])
       renderer.autoClear = true;
 
     }
+
+    effect.eyeSeparation = Config.eyeSeparation;
 
     effect.render( scene, camera );
 
@@ -408,27 +409,14 @@ angular.module('starter.controllers', ['ionic'])
   };
 }])
 
-.controller('ChatsCtrl', function($scope, Chats) {
-  // With the new view caching in Ionic, Controllers are only called
-  // when they are recreated or on app start, instead of every page change.
-  // To listen for when this page is active (for example, to refresh data),
-  // listen for the $ionicView.enter event:
-  //
-  //$scope.$on('$ionicView.enter', function(e) {
-  //});
-
-  $scope.chats = Chats.all();
-  $scope.remove = function(chat) {
-    Chats.remove(chat);
+.controller('ConfigCtrl', function($scope, Config) {
+  $scope.config = {
+    get eyeSerapation() {
+      return Config.eyeSeparation * 10;
+    },
+    set eyeSerapation(v) {
+      Config.eyeSeparation = v / 10;
+    },
   };
 })
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
-  $scope.chat = Chats.get($stateParams.chatId);
-})
-
-.controller('AccountCtrl', function($scope) {
-  $scope.settings = {
-    enableFriends: true
-  };
-});
